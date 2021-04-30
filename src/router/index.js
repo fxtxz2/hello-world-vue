@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Pdf from '../views/Pdf.vue'
+import Download from '../views/Download.vue'
 
 Vue.use(VueRouter)
 
@@ -23,6 +24,11 @@ const routes = [
     path: '/pdf',
     name: 'Pdf',
     component: Pdf
+  },
+  {
+    path: '/download',
+    name: 'Download',
+    component: Download
   }
 ]
 
