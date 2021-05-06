@@ -12,6 +12,7 @@
 <script>
 // @ is an alias to /src
 const axios = require('axios').default;
+const streamSaver = require('streamsaver');
 
 export default {
   name: 'Download',
@@ -46,23 +47,40 @@ export default {
           });
     },
     getFile: function () {
-      const config = {
-        method: 'get',
-        url: '/api/common/downloadFile?xxxx.srt',
+
+      const url = '/api/common/downloadFile?xxxx.srt'
+
+      fetch(url, {
+        method: 'GET',
+        cache: 'no-cache',
         headers: {
           'xxxx': 'xxxx'
-        },
-        responseType: 'blob'
-      };
-      axios(config).then(response => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'xxxx.srt');
-        document.body.appendChild(link);
-        link.click();
+        }
+      }).then(res => {
 
+        const fileStream = streamSaver.createWriteStream('xxxx.srt', {
+          size : res.headers.get("content-length")
+        })
+
+        const readableStream = res.body
+
+        // more optimized
+        if (window.WritableStream && readableStream.pipeTo) {
+          return readableStream.pipeTo(fileStream)
+              .then(() => console.log('done writing'))
+        }
+        window.writer = fileStream.getWriter()
+
+        const reader = res.body.getReader()
+        const pump = () => reader.read()
+            .then(res => res.done
+                ? window.writer.close()
+                : window.writer.write(res.value).then(pump))
+
+        pump()
       })
+
+
     }
   }
 }
